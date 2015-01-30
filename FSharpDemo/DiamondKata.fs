@@ -19,7 +19,6 @@ let make (Alphabet(c)) =
     let lines =
         let getLine c =
             let expectedLength = numLines
-            //failwithf "Expected length: %A" expectedLength
             let innerLine =
                 if c = 'A'
                 then "A"
@@ -31,8 +30,8 @@ let make (Alphabet(c)) =
             padding + innerLine + padding
 
         let prevChar = (int c) - 1 |> char
-        let upChars = { 'A'..prevChar }
-        let downChars = upChars |> Seq.toList |> List.rev
+        let upChars = [ 'A'..prevChar ]
+        let downChars = upChars |> List.rev
 
         seq {
             for char in upChars -> getLine char
