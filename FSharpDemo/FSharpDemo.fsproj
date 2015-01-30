@@ -51,6 +51,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Demo.fs" />
+    <Compile Include="Cards.fs" />
     <Compile Include="DiamondKata.fs" />
     <Compile Include="PropertyTesting.fs" />
     <Compile Include="LinkedList.fs" />
