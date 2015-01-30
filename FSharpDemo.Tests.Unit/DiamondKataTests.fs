@@ -20,11 +20,13 @@ type DiamondPropertyAttribute() =
 let toLines (s : string) = s.Split ([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries)
 let uncurry f (x, y) = f x y
 
-let toNum c =
-    let chars = ['A' .. 'Z']
-    let nums = [1 .. 26]
-    
-    (Seq.zip chars nums |> dict).[c]
+let numberedChars = 
+    Seq.zip {'A' .. 'Z'} {1 .. 26} |> dict
+
+let toNum c = numberedChars.[c]
+
+let reverseString (s : string) =
+    new String(s.ToCharArray() |> Array.rev)
 
 [<Fact>]
 let ``Test character A``() =
@@ -43,6 +45,14 @@ let ``Diamond is non-empty`` (letter : char) =
     let actual = DiamondKata.make letter
 
     test <@ not (String.IsNullOrWhiteSpace actual) @>
+
+[<DiamondProperty>]
+let ``Each line in diamond is symmetrical`` (letter : char) =
+    let actual = DiamondKata.make letter
+
+    let lines = toLines actual
+
+    test <@ lines |> Seq.forall (fun line -> (reverseString line) = line) @>
 
 [<DiamondProperty>]
 let ``Diamond is vertically symmetrical`` (letter : char) =
