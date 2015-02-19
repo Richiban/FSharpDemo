@@ -83,6 +83,16 @@ let ``Diamond output has no two consecutive lines the same`` (letter : char) =
     test <@ linePairs |> Seq.forall (uncurry(<>)) @>
 
 [<DiamondProperty>]
+let ``Diamond output has no two consecutive lines with the same trimmed length`` (letter : char) =
+    let actual = DiamondKata.make letter
+
+    let lines = toLines actual
+    let linePairs = lines |> Seq.pairwise
+
+    //  The length of every line is equal to the number of lines
+    test <@ linePairs |> Seq.forall (fun (line1, line2) -> line1.Trim().Length <> line2.Trim().Length) @>
+
+[<DiamondProperty>]
 let ``Diamond output has the correct number of lines`` (letter : char) =
     let numLinesActual = DiamondKata.make letter |> toLines |> Array.length
     let numLinesExpected = (toNum letter) * 2 - 1

@@ -56,6 +56,7 @@
     <Compile Include="PropertyTesting.fs" />
     <Compile Include="LinkedList.fs" />
     <Compile Include="Weapons.fs" />
+    <Compile Include="Poker.fs" />
     <Compile Include="RailwayProgramming.fs" />
     <Compile Include="Tpl.fs" />
     <Compile Include="Bubblesort.fs" />
