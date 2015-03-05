@@ -9,8 +9,8 @@ type Number = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jac
 
 type Card = Suit * Number
 
-let suit = fst
-let number = snd
+let suit (card : Card) = fst card
+let number (card : Card) = snd card
 
 type Hand = Card list
 
@@ -19,55 +19,58 @@ type Rank = | HighCard of Number | Pair of Number | TwoPairs of Number * Number 
             | FourOfAKind of highCard: Number | StraightFlush of highCard: Number
             
 module Ranker =
-    let determineRank (hand : Hand) =
-        let (|IsFlush|_|) hand =
-            let suitGroups = hand |> Seq.groupBy suit |> Seq.toList
             
-            match suitGroups with
-            | [suit, cards] ->
-                let highCard = cards |> Seq.map number |> Seq.max
-                Some (suit, highCard)
-            | _ -> None
+    let private getGroupsOfSize size =
+        Seq.groupBy number 
+        >> Seq.choose (fun (num, cards) -> let cardsList = Array.ofSeq cards in if cardsList.Length = size then Some (num, cardsList) else None ) 
+        >> Seq.toList
+
+    let (|IsFlush|_|) hand =
+        let suitGroups = hand |> Seq.groupBy suit |> Seq.toList
             
-        let (|IsStraight|_|) hand =
-            let toInt = function | Two -> 2 | Three -> 3 | Four -> 4 | Five -> 5 | Six -> 6 | Seven -> 7  | Eight -> 8
-                                 | Nine -> 9 | Ten -> 10 | Jack -> 11 | Queen -> 12 | King -> 13 | Ace -> 14
+        match suitGroups with
+        | [ (suit, cards) ] ->
+            let highCard = cards |> Seq.map number |> Seq.max
+            Some (suit, highCard)
+        | _ -> None
+            
+    let (|IsStraight|_|) hand =
+        let toInt = function | Two -> 2 | Three -> 3 | Four -> 4 | Five -> 5 | Six -> 6 | Seven -> 7  | Eight -> 8
+                             | Nine -> 9 | Ten -> 10 | Jack -> 11 | Queen -> 12 | King -> 13 | Ace -> 14
                                  
-            let ints = hand |> Seq.map (number >> toInt) |> Seq.sort
+        let ints = hand |> Seq.map (number >> toInt) |> Seq.sort
+        let isStraight = ints |> Seq.pairwise |> Seq.forall (fun (a, b) -> a + 1 = b)
+            
+        if isStraight 
+        then 
             let highestNumber = hand |> Seq.map number |> Seq.max
+            Some highestNumber 
+        else None
             
-            let isStraight = ints |> Seq.pairwise |> Seq.forall (fun (a, b) -> a + 1 = b)
+    let (|HasPair|_|) hand =
+        match hand |> getGroupsOfSize 2 with
+        | [(num, _)] -> Some num
+        | _ -> None
             
-            if isStraight then Some highestNumber else None
+    let (|HasTwoPairs|_|) hand =
+        match hand |> getGroupsOfSize 2 with
+        | [(num1, _); (num2, _)] -> Some (num1, num2)
+        | _ -> None
             
-        let getGroupsOfSize size =
-            Seq.groupBy number 
-            >> Seq.choose (fun (num, cards) -> let cardsList = cards.ToList() in if cardsList.Count = size then Some (num, cardsList) else None ) 
-            >> Seq.toList
+    let (|HasThree|_|) hand =
+        match hand |> getGroupsOfSize 3 with
+        | [(num, _)] -> Some num
+        | _ -> None
             
-        let (|HasPair|_|) hand =
-            match hand |> getGroupsOfSize 2 with
-            | [(num, _)] -> Some num
-            | _ -> None
+    let (|IsFourOfAKind|_|) hand =
+        match hand |> getGroupsOfSize 4 with
+        | [(num, _)] -> Some num
+        | _ -> None
             
-        let (|HasTwoPairs|_|) hand =
-            match hand |> getGroupsOfSize 2 with
-            | [(num1, _); (num2, _)] -> Some (num1, num2)
-            | _ -> None
-            
-        let (|HasThree|_|) hand =
-            match hand |> getGroupsOfSize 3 with
-            | [(num, _)] -> Some num
-            | _ -> None
-            
-        let (|IsFourOfAKind|_|) hand =
-            match hand |> getGroupsOfSize 4 with
-            | [(num, _)] -> Some num
-            | _ -> None
-            
-        let (|HighCard|) hand =
-            hand |> Seq.map number |> Seq.max
+    let (|HighCard|) hand =
+        hand |> Seq.map number |> Seq.max
            
+    let determineRank (hand : Hand) =
         match hand with
         | IsFlush _ & IsStraight highCard -> StraightFlush highCard
         | IsFourOfAKind number -> FourOfAKind number
